@@ -22,12 +22,14 @@ async def create_product(product_data:ProductCreate, session: AsyncSession)->Pro
 
 
 async def get_all_products(session: AsyncSession)->List[Product]:
-   statement = select(Product)
+    # implement the eager loading for the category and reviews of the products to avoid the error of lazy loading when we try to access the category and reviews of the products because they are not loaded in the session after commit, so we need to load them in the session after commit to avoid the error of lazy loading when we try to access them after commit
+    
+   statement = select(Product).options(selectinload(Product.category), selectinload(Product.reviews))
    result = await session.exec(statement)
    return result.all() # type: ignore
 
 async def get_product_by_id(product_id: int, session: AsyncSession)-> Optional[Product]:
-    statement = select(Product).where(Product.id == product_id)
+    statement = select(Product).options(selectinload(Product.category), selectinload(Product.reviews)).where(Product.id == product_id)
     result = await session.exec(statement)
     return result.one_or_none()
 
